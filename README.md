@@ -8,12 +8,12 @@ I'm unaware how common this service is. The most notable example is Nitro PDF <=
 
 ### Usage
 
-I've only implemented a basic read call for the proof of concept. However, there are more control codes that expose more functionality. It works against the primary drive when the service is hosted, and reads 520 bytes in 512 by increments. Provided you were motivated, reading the entire disk and re-creating NTFS volume information should be entirely possible. An excercise for the reader I suppose.
+I've only implemented a basic read call for the proof of concept. However, there are more control codes that expose more functionality. It works against the primary drive when the service is hosted, and reads a sector in sector increments (512). Provided you were motivated, reading the entire disk and re-creating NTFS volume information should be entirely possible. An excercise for the reader I suppose.
 
 ```
-PS C:\> MailOrder.exe 1024
+PS C:\> MailOrder.exe c 4096
 
-[+] Requesting 520 bytes at offset 1024 ...
+[+] Requesting sector from c: at offset 4096 ...
 [+] Drive data [hex]:
 
 45 46 49 20 50 41 52 54 00 00 01 00 5C 00 00 00 0D 24 5C 77 00 00 00 00 01 00 00 00 00 00 00 00
